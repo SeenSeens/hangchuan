@@ -14,7 +14,7 @@ class WpFormsPluginHandler extends BaseContactFormPluginHandler
     private function get_form_type_field($formData, $type)
     {
         foreach ($formData as $field) {
-            if(array_key_exists('type', $field) && $field['type'] === $type) {
+            if (array_key_exists('type', $field) && $field['type'] === $type) {
                 return $field;
             }
         }
@@ -26,7 +26,7 @@ class WpFormsPluginHandler extends BaseContactFormPluginHandler
         $formdata = array();
         $entry = json_decode($entry->fields, true);
         foreach ($entry as $field) {
-            if(array_key_exists('type', $field)) {
+            if (array_key_exists('type', $field)) {
                 $formdata[$field["type"]] = $field["value"];
             }
         }
@@ -68,8 +68,7 @@ class WpFormsPluginHandler extends BaseContactFormPluginHandler
     {
         try {
             $this->upsertContact($this->convertToContactModel($fields));
-        }
-        catch (\Exception $exception) {
+        } catch (\Exception $exception) {
             // silent exception
         }
     }
@@ -107,9 +106,18 @@ class WpFormsPluginHandler extends BaseContactFormPluginHandler
 
             //Loop through entries and create the contacts
             foreach ($entryResult as $entry) {
-                $entryData = $this->convertEntryStringToFormData($entry);
-                $contact = $this->convertToContactModel($entryData);
-                array_push($contactsArray, $contact);
+                $contactModel = null;
+                try {
+                    $entryData = $this->convertEntryStringToFormData($entry);
+                    $contact = $this->convertToContactModel($entryData);
+                    if (!empty($contact->getEmail())) {
+                        array_push($contactsArray, $contact);
+                    }
+
+                } catch (\Exception $exception) {
+                    // silent exception
+                    continue;
+                }
 
                 if (isset($limit) && count($contactsArray) >= $limit) {
                     break;

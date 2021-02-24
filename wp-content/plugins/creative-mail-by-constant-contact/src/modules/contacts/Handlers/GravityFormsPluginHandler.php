@@ -26,9 +26,9 @@ class GravityFormsPluginHandler extends BaseContactFormPluginHandler
             $contactModel->setEmail($email);
         }
 
-        $firstName = $user->name['firstName'];
-        $insertion = $user->name['insertion'];
-        $lastName = $user->name['lastName'];
+        $firstName = isset($user->name['firstName']) ? $user->name['firstName'] : null;
+        $insertion = isset($user->name['insertion']) ? $user->name['insertion'] : null;
+        $lastName = isset($user->name['lastName']) ? $user->name['lastName'] : null;
 
         if (!empty($firstName)) {
             $contactModel->setFirstName($firstName);
@@ -48,7 +48,7 @@ class GravityFormsPluginHandler extends BaseContactFormPluginHandler
      * Gets the first name, optional insertion and last name from the contactform
      *
      * @param $entry (The form submission)
-     * @param $form  (The form used)
+     * @param $form (The form used)
      *
      * @return string (concatenated firstname, insertion and lastname) Returns the concatenated name
      */
@@ -72,7 +72,7 @@ class GravityFormsPluginHandler extends BaseContactFormPluginHandler
      * Returns the value of the email field or the first valid email found in an "email" labelled text field, or NULL
      *
      * @param $entry (The form submission)
-     * @param $form  (The form used)
+     * @param $form (The form used)
      *
      * @return string (either a validated email or NULL)
      */
@@ -176,7 +176,15 @@ class GravityFormsPluginHandler extends BaseContactFormPluginHandler
                     $contact->name = $this->GetNameValuesFromForm($entry, $formArray);
 
                     //Convert to contactModel
-                    $contactModel = $this->convertToContactModel($contact);
+
+                    $contactModel = null;
+                    try {
+                        $contactModel = $this->convertToContactModel($contact);
+                    } catch (\Exception $exception) {
+                        // silent exception
+                        continue;
+                    }
+
                     array_push($contactsArray, $contactModel);
 
                     if (isset($limit) && count($contactsArray) >= $limit) {

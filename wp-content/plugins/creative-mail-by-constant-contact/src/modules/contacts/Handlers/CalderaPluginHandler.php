@@ -12,17 +12,17 @@ class CalderaPluginHandler extends BaseContactFormPluginHandler
 
     private function GetNameFromForm($entry)
     {
-        if ($this->isNullOrEmpty($entry)){
+        if ($this->isNullOrEmpty($entry)) {
             return null;
         }
 
         $name = null;
         foreach ($entry as $field) {
-            if($field->slug === "first_name") {
+            if ($field->slug === "first_name") {
                 $name["firstname"] = $field->value;
                 continue;
             }
-            if($field->slug === "last_name"){
+            if ($field->slug === "last_name") {
                 $name["lastname"] = $field->value;
                 return $name;
             }
@@ -32,11 +32,11 @@ class CalderaPluginHandler extends BaseContactFormPluginHandler
 
     private function GetEmailFromForm($entry)
     {
-        if ($this->isNullOrEmpty($entry)){
+        if ($this->isNullOrEmpty($entry)) {
             return null;
         }
         foreach ($entry as $field) {
-            if($field->slug === "email_address" ) {
+            if ($field->slug === "email_address") {
                 return $field->value;
             }
         }
@@ -109,8 +109,7 @@ class CalderaPluginHandler extends BaseContactFormPluginHandler
         }
 
         // Relies on plugin => GravityForms
-        if (in_array('caldera-forms/caldera-core.php', apply_filters('active_plugins', get_option('active_plugins'))) && defined( 'CFCORE_VER'))
-        {
+        if (in_array('caldera-forms/caldera-core.php', apply_filters('active_plugins', get_option('active_plugins'))) && defined('CFCORE_VER')) {
             global $wpdb;
 
             $contactsArray = array();
@@ -130,8 +129,15 @@ class CalderaPluginHandler extends BaseContactFormPluginHandler
                 $contact->lastname = array_key_exists("lastname", $nameValues) ? $nameValues["lastname"] : null;
 
                 //Convert to contactModel
-                $contactModel = $this->convertToContactModel($contact);
-                if (!empty($contactModel)){
+                $contactModel = null;
+                try {
+                    $contactModel = $this->convertToContactModel($contact);
+                } catch (\Exception $exception) {
+                    // silent exception
+                    continue;
+                }
+
+                if (!empty($contactModel)) {
                     array_push($contactsArray, $contactModel);
                 }
 

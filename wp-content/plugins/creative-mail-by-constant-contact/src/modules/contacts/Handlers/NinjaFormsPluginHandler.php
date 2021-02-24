@@ -52,20 +52,19 @@ class NinjaFormsPluginHandler extends BaseContactFormPluginHandler
         $contactModel->setOptOut(false);
         $contactModel->setOptActionBy(OptActionBy::Owner);
 
-        if(isset($contact->optinByOwner)){
+        if (isset($contact->optinByOwner)) {
             $contactModel->setOptIn(boolval($contact->optinByOwner));
         }
 
         $email = $contact->email;
         if (!empty($email)) {
-
             $contactModel->setEmail($email);
         }
 
         $name = !empty($contact->name) ? $contact->name : null;
         $firstName = null;
         $lastName = null;
-        if (!empty($name)){
+        if (!empty($name)) {
             $values = explode(' ', $contact->name);
             $firstName = array_shift($values);
             $lastName = implode(' ', $values);
@@ -84,7 +83,8 @@ class NinjaFormsPluginHandler extends BaseContactFormPluginHandler
         return $contactModel;
     }
 
-    public function attemptAdditionalNameExtraction($contact, $field_key, $field_values){
+    public function attemptAdditionalNameExtraction($contact, $field_key, $field_values)
+    {
         //Attempt additional checking for name in an attempt to get custom form fields for names
         $name = null;
         if (strpos($field_key, "full_name") !== false || isset($field_values["name"])) {
@@ -160,11 +160,10 @@ class NinjaFormsPluginHandler extends BaseContactFormPluginHandler
                             $field_key = $field_settings["key"];
                             $field_type = $field_settings["type"];
 
-                            switch($field_type)
-                            {
+                            switch ($field_type) {
                                 case 'email';
                                     $email = isset($field_values[$field_key]) ? $field_values[$field_key] : null;
-                                    if (filter_var($email, FILTER_VALIDATE_EMAIL)){
+                                    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                                         $contact->email = $email;
                                     }
                                     break;
@@ -182,7 +181,7 @@ class NinjaFormsPluginHandler extends BaseContactFormPluginHandler
                                     break;
                                 case 'textbox';
                                 case 'text';
-                                    if (empty($contact->name) && (empty($contact->firstName) || empty($contact->lastName))){
+                                    if (empty($contact->name) && (empty($contact->firstName) || empty($contact->lastName))) {
                                         $this->attemptAdditionalNameExtraction($contact, $field_key, $field_values);
                                     }
                                     break;
@@ -194,9 +193,20 @@ class NinjaFormsPluginHandler extends BaseContactFormPluginHandler
                         if (!empty($contact->email) && $contact->email != null) {
                             //set optin by owner on db sync
                             $contact->optinByOwner = true;
+
+
                             //Convert to contactModel and push to the array
-                            $contactModel = $this->convertToContactModel($contact);
-                            array_push($contactsArray, $contactModel);
+                            $contactModel = null;
+                            try {
+                                $contactModel = $this->convertToContactModel($contact);
+                                if (!empty($contactModel->getEmail())) {
+                                    array_push($contactsArray, $contactModel);
+                                }
+                            } catch (\Exception $exception) {
+                                // silent exception
+                                continue;
+                            }
+
                             if (isset($limit) && count($contactsArray) >= $limit) {
                                 break;
                             }

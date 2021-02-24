@@ -25,15 +25,17 @@ class WooCommercePluginHandler extends BaseContactFormPluginHandler
         $products_detail = get_post_meta($orderId);
 
         if (isset($products_detail)) {
+            if (!empty($products_detail["_billing_email"]) && isset($products_detail["_billing_email"][0]) && !empty($products_detail["_billing_email"][0])) {
+                $contactModel->setEmail($products_detail["_billing_email"][0]);
+            } else {
+                return $contactModel;
+            }
+
             if (!empty($products_detail["_billing_first_name"])) {
                 $contactModel->setFirstName($products_detail["_billing_first_name"][0]);
             }
             if (!empty($products_detail["_billing_last_name"])) {
                 $contactModel->setLastName($products_detail["_billing_last_name"][0]);
-            }
-
-            if (!empty($products_detail["_billing_email"])) {
-                $contactModel->setEmail($products_detail["_billing_email"][0]);
             }
 
             $contactAddress = $this->getContactAddressFromOrder($products_detail);
@@ -156,12 +158,17 @@ class WooCommercePluginHandler extends BaseContactFormPluginHandler
 
         foreach ($products_orders as $products_order) {
 
-            $contactModel = $this->convertToContactModel($products_order->ID);
-
-            if(!empty($contactModel->getEmail())) {
-                array_push($backfillArray, $contactModel);
+            $contactModel = null;
+            try {
+                $contactModel = $this->convertToContactModel($products_order->ID);
+            } catch (\Exception $exception) {
+                // silent exception
+                continue;
             }
 
+            if (!empty($contactModel->getEmail())) {
+                array_push($backfillArray, $contactModel);
+            }
         }
 
         if (!empty($backfillArray)) {

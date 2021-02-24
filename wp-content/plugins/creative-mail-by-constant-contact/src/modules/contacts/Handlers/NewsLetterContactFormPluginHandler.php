@@ -39,8 +39,7 @@ class NewsLetterContactFormPluginHandler extends BaseContactFormPluginHandler
     {
         try {
             $this->upsertContact($this->convertToContactModel($user));
-        }
-        catch (\Exception $exception) {
+        } catch (\Exception $exception) {
             // silent exception
         }
     }
@@ -72,8 +71,7 @@ class NewsLetterContactFormPluginHandler extends BaseContactFormPluginHandler
         if ($limit != null) {
             $query .= " LIMIT %d";
             $query = $wpdb->prepare($query, $limit);
-        }
-        else {
+        } else {
             $query = $wpdb->prepare($query);
         }
 
@@ -84,24 +82,29 @@ class NewsLetterContactFormPluginHandler extends BaseContactFormPluginHandler
         if (isset($result) && !empty($result)) {
             foreach ($result as $contact) {
                 $contactModel = new ContactModel();
-                $contactModel->setEventType(CE4WP_NL_EVENTTYPE);
-                $contactModel->setOptIn($contact->status !== "U");
-                $contactModel->setOptOut($contact->status === "U");
-                $contactModel->setOptActionBy(OptActionBy::Visitor);
+                try {
+                    $contactModel->setEventType(CE4WP_NL_EVENTTYPE);
+                    $contactModel->setOptIn($contact->status !== "U");
+                    $contactModel->setOptOut($contact->status === "U");
+                    $contactModel->setOptActionBy(OptActionBy::Visitor);
 
-                $email = $contact->email;
-                if (!empty($email)) {
-                    $contactModel->setEmail($email);
-                }
+                    $email = $contact->email;
+                    if (!empty($email)) {
+                        $contactModel->setEmail($email);
+                    }
 
-                $name = $contact->name;
-                if (!empty($name)) {
-                    $contactModel->setFirstName($name);
-                }
+                    $name = $contact->name;
+                    if (!empty($name)) {
+                        $contactModel->setFirstName($name);
+                    }
 
-                $surname = $contact->surname;
-                if (!empty($surname)) {
-                    $contactModel->setLastName($surname);
+                    $surname = $contact->surname;
+                    if (!empty($surname)) {
+                        $contactModel->setLastName($surname);
+                    }
+                } catch (\Exception $exception) {
+                    // silent exception
+                    continue;
                 }
 
                 if (!empty($contactModel->getEmail())) {
@@ -113,7 +116,7 @@ class NewsLetterContactFormPluginHandler extends BaseContactFormPluginHandler
         if (!empty($backfillArray)) {
 
             $batches = array_chunk($backfillArray, CE4WP_BATCH_SIZE);
-            foreach($batches as $batch){
+            foreach ($batches as $batch) {
                 try {
                     $this->batchUpsertContacts($batch);
                 } catch (\Exception $exception) {

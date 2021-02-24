@@ -342,3 +342,37 @@ function retail_shop_default_header(){
 	</div><!-- end of  .menu, search -->
 <?php 
 }
+
+// dev 
+add_filter('woocommerce_currency_symbol', 'change_existing_currency_symbol', 10, 2);
+ 
+function change_existing_currency_symbol( $currency_symbol, $currency ) {
+ switch( $currency ) {
+ case 'VND': $currency_symbol = 'VNĐ'; break;
+ }
+ return $currency_symbol;
+}
+add_filter( 'gettext', 'hocwordpress_translate_woocommerce_strings', 999 );
+
+function hocwordpress_translate_woocommerce_strings( $translated ) {
+
+$translated = str_ireplace( 'Mua hàng', 'Mua ngay lập tức', $translated );
+$translated = str_ireplace( 'Giảm giá', 'Giá ưu đãi', $translated );
+
+return $translated;
+}
+
+function devvn_wc_custom_get_price_html( $price, $product ) {
+    if ( $product->get_price() == 0 ) {
+        if ( $product->is_on_sale() && $product->get_regular_price() ) {
+            $regular_price = wc_get_price_to_display( $product, array( 'qty' => 1, 'price' => $product->get_regular_price() ) );
+ 
+            $price = wc_format_price_range( $regular_price, __( 'Free!', 'woocommerce' ) );
+        } else {
+            $price = '<span class="amount">' . __( 'Liên hệ', 'woocommerce' ) . '</span>';
+        }
+    }
+    return $price;
+}
+add_filter( 'woocommerce_get_price_html', 'devvn_wc_custom_get_price_html', 10, 2 );
+

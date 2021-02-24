@@ -2,6 +2,8 @@
 
 namespace CreativeMail\Modules\Contacts\Models;
 
+use Exception;
+
 class ContactModel
 {
     public $email;

@@ -32,7 +32,7 @@ class EnvironmentHelper
 
         $environment = CE4WP_ENVIRONMENT;
         if ($environment === "{ENV}") {
-            return EnvironmentNames::DEVELOPMENT;
+            return EnvironmentNames::PRODUCTION;
         }
 
         return $environment;

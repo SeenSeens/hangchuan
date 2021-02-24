@@ -11,8 +11,8 @@ use CreativeMail\Modules\Contacts\Models\OptActionBy;
 class ContactFormSevenPluginHandler extends BaseContactFormPluginHandler
 {
 
-    private $emailFields = array('your-email','email', 'emailaddress', 'email_address');
-    private $firstnameFields = array('firstname', 'first_name','name','your-name');
+    private $emailFields = array('your-email', 'email', 'emailaddress', 'email_address');
+    private $firstnameFields = array('firstname', 'first_name', 'name', 'your-name');
     private $lastnameFields = array('lastname', 'last_name');
 
     private function findValue($data, $fieldOptions)
@@ -92,15 +92,14 @@ class ContactFormSevenPluginHandler extends BaseContactFormPluginHandler
             global $wpdb;
 
             $cfdb = apply_filters('cfdb7_database', $wpdb);
-            $cfdbtable = $cfdb->prefix.'db7_forms';
+            $cfdbtable = $cfdb->prefix . 'db7_forms';
             $cfdbQuery = "SELECT form_id, form_post_id, form_value FROM $cfdbtable";
 
             // Do we need to limit the number of results
             if ($limit != null) {
                 $cfdbQuery .= " LIMIT %d";
                 $cfdbQuery = $cfdb->prepare($cfdbQuery, $limit);
-            }
-            else {
+            } else {
                 $cfdbQuery = $cfdb->prepare($cfdbQuery);
             }
 
@@ -114,17 +113,22 @@ class ContactFormSevenPluginHandler extends BaseContactFormPluginHandler
                 $contactModel->setOptIn(true);
                 $contactModel->setOptOut(false);
                 $contactModel->setOptActionBy(OptActionBy::Visitor);
-                $email = $this->findValueFromDb($form_data, $this->emailFields);
-                if (!empty($email)) {
-                    $contactModel->setEmail($email);
-                }
-                $firstname = $this->findValueFromDb($form_data, $this->firstnameFields);
-                if (!empty($firstname)) {
-                    $contactModel->setFirstName($firstname);
-                }
-                $lastname = $this->findValueFromDb($form_data, $this->lastnameFields);
-                if (!empty($lastname)) {
-                    $contactModel->setLastName($lastname);
+                try {
+                    $email = $this->findValueFromDb($form_data, $this->emailFields);
+                    if (!empty($email)) {
+                        $contactModel->setEmail($email);
+                    }
+                    $firstname = $this->findValueFromDb($form_data, $this->firstnameFields);
+                    if (!empty($firstname)) {
+                        $contactModel->setFirstName($firstname);
+                    }
+                    $lastname = $this->findValueFromDb($form_data, $this->lastnameFields);
+                    if (!empty($lastname)) {
+                        $contactModel->setLastName($lastname);
+                    }
+                } catch (\Exception $exception) {
+                    // silent exception
+                    continue;
                 }
 
                 if (!empty($contactModel->getEmail())) {
@@ -136,7 +140,7 @@ class ContactFormSevenPluginHandler extends BaseContactFormPluginHandler
             if (!empty($contactsArray)) {
 
                 $batches = array_chunk($contactsArray, CE4WP_BATCH_SIZE);
-                foreach($batches as $batch){
+                foreach ($batches as $batch) {
                     $this->batchUpsertContacts($batch);
                 }
             }
@@ -147,8 +151,7 @@ class ContactFormSevenPluginHandler extends BaseContactFormPluginHandler
     {
         try {
             $this->upsertContact($this->convertToContactModel($contact_form));
-        }
-        catch (\Exception $exception) {
+        } catch (\Exception $exception) {
             // silent exception
         }
     }

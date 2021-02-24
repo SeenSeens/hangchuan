@@ -150,7 +150,14 @@ class JetpackPluginHandler extends BaseContactFormPluginHandler
                     $contact->opt_in = boolval($consentValue);
 
                     //Convert to contactModel and push to the array
-                    $contactModel = $this->convertToContactModel($contact);
+                    $contactModel = null;
+                    try {
+                        $contactModel = $this->convertToContactModel($contact);
+                    } catch (\Exception $exception) {
+                        // silent exception
+                        continue;
+                    }
+
                     array_push($contactsArray, $contactModel);
 
                     if (isset($limit) && count($contactsArray) >= $limit) {
